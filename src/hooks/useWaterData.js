@@ -33,32 +33,39 @@ export function useWaterData() {
     stream.start();
 
     // --- Firestore background subscription ---
-    const q = query(
-      collection(db, "water_data"),
-      orderBy("sectorId", "asc")
-    );
+    if (db) {
+      try {
+        const q = query(
+          collection(db, "water_data"),
+          orderBy("sectorId", "asc")
+        );
 
-    firestoreUnsubRef.current = onSnapshot(
-      q,
-      (snapshot) => {
-        const docs = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        firestoreUnsubRef.current = onSnapshot(
+          q,
+          (snapshot) => {
+            const docs = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
 
-        if (docs.length > 0) {
-          // Kill the mock pulse — real data has arrived.
-          stream.stop();
-          setData(docs);
-          setIsLive(true);
-        }
-      },
-      (err) => {
-        console.error("Firestore error:", err);
-        setError(err.message);
+            if (docs.length > 0) {
+              // Kill the mock pulse — real data has arrived.
+              stream.stop();
+              setData(docs);
+              setIsLive(true);
+            }
+          },
+          (err) => {
+            console.error("Firestore error:", err);
+            setError(err.message);
+            // Mock stream keeps pulsing — demo continues.
+          }
+        );
+      } catch (err) {
+        console.warn("Firestore subscription failed:", err.message);
         // Mock stream keeps pulsing — demo continues.
       }
-    );
+    }
 
     // Cleanup on unmount.
     return () => {

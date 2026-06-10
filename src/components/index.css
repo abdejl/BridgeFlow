@@ -39,6 +39,22 @@ body {
 .page-fade > *:nth-child(4) { animation: fadeInUp 0.35s 0.18s ease-out both; }
 .page-fade > *:nth-child(5) { animation: fadeInUp 0.35s 0.24s ease-out both; }
 
+/* ─── Warning Pulse Animation ────────────────────────────── */
+@keyframes warningPulse {
+  0%, 100% {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.04),
+      0 0 0 0 rgba(245, 158, 11, 0);
+  }
+  50% {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.04),
+      0 0 0 6px rgba(245, 158, 11, 0.15);
+  }
+}
+
 /* ─── Glass Card ───────────────────────────────────────── */
 .glass-card {
   background: rgba(255, 255, 255, 0.72);
@@ -52,7 +68,8 @@ body {
     0 8px 24px rgba(0, 0, 0, 0.04);
   transition:
     transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease;
 }
 
 .glass-card:hover {
@@ -60,6 +77,40 @@ body {
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.08),
     0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+.glass-card--warning {
+  animation: warningPulse 2.5s ease-in-out infinite;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.glass-card--warning:hover {
+  transform: translateY(-4px);
+}
+
+/* ─── Dashboard Warning Banner ──────────────────────────── */
+.warning-banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  margin: -2rem -2rem 1.5rem -2rem;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-bottom: 1px solid #fde68a;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #92400e;
+  animation: fadeInUp 0.3s ease-out both;
+}
+
+.warning-banner-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #d97706;
 }
 
 .glass-card-accent {
@@ -857,4 +908,260 @@ body {
 
 .modal-actions .btn-secondary:hover {
   background: #e2e8f0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile-First (< 768px)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* ── Main Content: account for bottom nav ─────────────── */
+  .main-content {
+    padding-bottom: 72px;
+  }
+
+  /* ── Page padding reduction ───────────────────────────── */
+  .page-fade {
+    padding: 1rem !important;
+  }
+
+  .page-fade > .warning-banner {
+    margin: -1rem -1rem 1rem -1rem;
+  }
+
+  /* ── Sector header: stack on small screens ────────────── */
+  .sector-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .sector-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .sector-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .sector-detail-header h1 {
+    font-size: 1.25rem;
+  }
+
+  /* ── Cards grid: single column ────────────────────────── */
+  .cards-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* ── Glass card: reduce padding ───────────────────────── */
+  .glass-card,
+  .glass-card-accent,
+  .chart-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  /* ── Warning banner: tighter margins ──────────────────── */
+  .warning-banner {
+    font-size: 0.78rem;
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+
+  /* ── Metrics grid: single column ──────────────────────── */
+  .metrics-grid-2x2 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .metric-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .metric-value {
+    font-size: 1.3rem;
+  }
+
+  /* ── Charts: full-width, touch-friendly ───────────────── */
+  .chart-card {
+    padding: 0.75rem;
+    overflow: hidden;
+  }
+
+  .chart-card .section-label {
+    font-size: 0.72rem;
+    padding: 0 0.25rem;
+  }
+
+  /* ── Health grid: single column ───────────────────────── */
+  .health-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .health-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .health-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .health-value {
+    font-size: 1.1rem;
+  }
+
+  /* ── Admin roles table: horizontal scroll ─────────────── */
+  .roles-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+    scrollbar-width: thin;
+  }
+
+  .roles-table {
+    min-width: 540px;
+  }
+
+  .roles-table thead th {
+    font-size: 0.62rem;
+    padding: 0 0.5rem 0.6rem 0;
+    white-space: nowrap;
+  }
+
+  .roles-table tbody td {
+    padding: 0.65rem 0.5rem 0.65rem 0;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  /* ── Audit log ────────────────────────────────────────── */
+  .audit-log {
+    max-height: 260px;
+  }
+
+  .audit-entry {
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.6rem 0;
+  }
+
+  .audit-timestamp {
+    min-width: 0;
+    font-size: 0.68rem;
+  }
+
+  .audit-message {
+    font-size: 0.78rem;
+  }
+
+  /* ── Ops controls: single column ──────────────────────── */
+  .ops-controls-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .ops-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  /* ── Buttons: full-width on mobile ────────────────────── */
+  .btn-primary,
+  .btn-danger,
+  .btn-warning {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* ── Modal: full-width on small screens ───────────────── */
+  .modal-card {
+    width: 95%;
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  /* ── Status badge: smaller on mobile ──────────────────── */
+  .status-badge {
+    font-size: 0.68rem;
+    padding: 3px 10px;
+  }
+
+  .sector-status-pill {
+    font-size: 0.68rem;
+    padding: 3px 10px;
+  }
+}
+
+/* ─── Range Slider (Cross-browser) ─────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ─── Time Input ───────────────────────────────────────── */
+input[type="time"] {
+  font-family: inherit;
+}
+
+input[type="time"]:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }

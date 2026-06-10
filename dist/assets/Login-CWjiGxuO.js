@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DUAcabCT.js";var t=e();function n(){return(0,t.jsx)(`div`,{style:{display:`flex`,justifyContent:`center`,alignItems:`center`,height:`100vh`},children:(0,t.jsx)(`h1`,{children:`Login`})})}export{n as default};

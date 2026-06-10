@@ -3,9 +3,14 @@ export default function SectorCard({ name, level, flowRate, status }) {
   const statusColor = { normal: "#10b981", warning: "#f59e0b", critical: "#ef4444" };
   const color = statusColor[status] ?? "#94a3b8";
 
+  const cardClass = status === "warning" ? "glass-card glass-card--warning" : "glass-card";
+
+  const displayLevel = typeof level === "number" ? level.toFixed(1) : level;
+  const displayFlow = typeof flowRate === "number" ? flowRate.toFixed(1) : flowRate;
+
   return (
     <div
-      className="glass-card"
+      className={cardClass}
       style={{ borderTop: `4px solid ${color}` }}
     >
       <h3 style={{ margin: 0, color: "#0f172a", fontSize: "1rem", fontWeight: 600 }}>
@@ -18,7 +23,7 @@ export default function SectorCard({ name, level, flowRate, status }) {
             Water Level
           </div>
           <div style={{ fontSize: "1.8rem", fontWeight: 700, color, lineHeight: 1 }}>
-            {level}%
+            {displayLevel}%
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -26,7 +31,7 @@ export default function SectorCard({ name, level, flowRate, status }) {
             Flow Rate
           </div>
           <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#334155", lineHeight: 1 }}>
-            {flowRate} <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>L/m</span>
+            {displayFlow} <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>L/m</span>
           </div>
         </div>
       </div>

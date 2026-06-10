@@ -13,18 +13,38 @@ const navItems = [
 
 export default function Sidebar() {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <span>💧 BridgeFlow</span>
-      </div>
-      <nav>
+    <>
+      {/* Desktop sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <span>💧 BridgeFlow</span>
+        </div>
+        <nav>
+          {navItems.map(({ to, label, icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/"}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+            >
+              {icon}
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Mobile bottom nav */}
+      <nav className="bottom-nav">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
-            end={to === "/"}                     // exact match for root
+            end={to === "/"}
             className={({ isActive }) =>
-              `sidebar-link ${isActive ? "active" : ""}`
+              `bottom-nav-link ${isActive ? "active" : ""}`
             }
           >
             {icon}
@@ -32,6 +52,6 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
-    </aside>
+    </>
   );
 }

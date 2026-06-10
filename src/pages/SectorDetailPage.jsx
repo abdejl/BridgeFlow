@@ -1,8 +1,9 @@
 // src/pages/SectorDetailPage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWaterData } from "../hooks/useWaterData";
 import { generateSectorDetail } from "../data/mockData";
 import StatusBadge from "../components/StatusBadge";
+import OperatorActions from "../components/OperatorActions";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   CartesianGrid, ResponsiveContainer
@@ -17,6 +18,7 @@ const STATUS_MAP = {
 export default function SectorDetailPage({ sectorId, sectorName }) {
   const { data, error, isLive } = useWaterData();
   const [detail, setDetail] = useState(null);
+  const [extraLogs, setExtraLogs] = useState([]);
 
   const sector = data.find((s) => s.sectorId === sectorId);
   const status = STATUS_MAP[sector?.status] ?? STATUS_MAP.normal;
@@ -24,11 +26,21 @@ export default function SectorDetailPage({ sectorId, sectorName }) {
   // Pulse sector detail data in sync with the main data stream.
   useEffect(() => {
     setDetail(generateSectorDetail(sectorId));
+    setExtraLogs([]);
     const timer = setInterval(() => {
       setDetail(generateSectorDetail(sectorId));
     }, 3000);
     return () => clearInterval(timer);
   }, [sectorId]);
+
+  const handleOperatorAction = useCallback((action) => {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    setExtraLogs((prev) => [
+      { id: Date.now(), time: timeStr, event: action.event, type: action.type },
+      ...prev,
+    ]);
+  }, []);
 
   if (!sector || !detail) return null;
 
@@ -69,7 +81,7 @@ export default function SectorDetailPage({ sectorId, sectorName }) {
           <div className="metric-info">
             <span className="metric-label">Flow Rate</span>
             <span className="metric-value">
-              {sector.flowRate}
+              {typeof sector.flowRate === "number" ? sector.flowRate.toFixed(1) : sector.flowRate}
               <span className="metric-unit">L/min</span>
             </span>
           </div>
@@ -130,46 +142,96 @@ export default function SectorDetailPage({ sectorId, sectorName }) {
         </div>
       </div>
 
-      {/* ── Historical Trend Chart ─────────────────────── */}
+      {/* ── Historical Trend Chart (Dual Axis) ─────────── */}
       <div className="chart-card" style={{ marginTop: "2rem" }}>
         <h2 className="section-label" style={{ marginBottom: "1rem" }}>
           Historical Trend
         </h2>
-        <ResponsiveContainer width="100%" height={280}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "0.75rem 1.5rem", marginBottom: "0.75rem" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.78rem", fontWeight: 600, color: "#0ea5e9" }}>
+            <span style={{ width: 16, height: 3, background: "#0ea5e9", borderRadius: 2, flexShrink: 0 }} />
+            Weekly Consumption (L)
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.78rem", fontWeight: 600, color: "#10b981" }}>
+            <span style={{ width: 16, height: 3, background: "#10b981", borderRadius: 2, borderTop: "2px dashed #10b981", flexShrink: 0 }} />
+            Avg Daily Flow (L/min)
+          </span>
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
           <LineChart data={detail.weeklyTrend}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} />
+            <XAxis dataKey="week" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
+            <YAxis
+              yAxisId="left"
+              domain={[0, 8000]}
+              tick={{ fontSize: 10, fill: "#0ea5e9" }}
+              axisLine={{ stroke: "#0ea5e9" }}
+              tickLine={{ stroke: "#0ea5e9" }}
+              width={50}
+              label={{
+                value: "Consumption (L)",
+                angle: -90,
+                position: "insideLeft",
+                offset: -5,
+                style: { fill: "#0ea5e9", fontSize: 10, fontWeight: 600 },
+              }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, 50]}
+              tick={{ fontSize: 10, fill: "#10b981" }}
+              axisLine={{ stroke: "#10b981" }}
+              tickLine={{ stroke: "#10b981" }}
+              width={50}
+              label={{
+                value: "Avg Daily Flow (L/min)",
+                angle: 90,
+                position: "insideRight",
+                offset: -5,
+                style: { fill: "#10b981", fontSize: 10, fontWeight: 600 },
+              }}
+            />
             <Tooltip
               contentStyle={{
-                background: "rgba(255,255,255,0.92)",
+                background: "rgba(255,255,255,0.95)",
                 backdropFilter: "blur(8px)",
                 border: "1px solid #e2e8f0",
                 borderRadius: 10,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                fontSize: "0.8rem",
+                padding: "8px 12px",
               }}
+              itemStyle={{ padding: "2px 0" }}
+              cursor={{ stroke: "#cbd5e1", strokeWidth: 1 }}
             />
             <Line
               type="monotone"
               dataKey="consumption"
+              yAxisId="left"
               stroke="#0ea5e9"
               strokeWidth={2.5}
               name="Consumption (L)"
-              dot={{ r: 4, fill: "#0ea5e9" }}
-              activeDot={{ r: 6 }}
+              dot={{ r: 3, fill: "#0ea5e9" }}
+              activeDot={{ r: 5 }}
             />
             <Line
               type="monotone"
               dataKey="flow"
+              yAxisId="right"
               stroke="#10b981"
               strokeWidth={2}
-              name="Avg Flow (L/min)"
+              name="Avg Daily Flow (L/min)"
               dot={{ r: 3, fill: "#10b981" }}
               strokeDasharray="5 5"
+              activeDot={{ r: 5 }}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {/* ── Operator Actions ────────────────────────────── */}
+      <OperatorActions sectorName={sectorName} onAction={handleOperatorAction} />
 
       {/* ── Recent Alerts / Activity ────────────────────── */}
       <div className="glass-card" style={{ marginTop: "2rem" }}>
@@ -185,7 +247,7 @@ export default function SectorDetailPage({ sectorId, sectorName }) {
             </tr>
           </thead>
           <tbody>
-            {detail.activityLogs.map((log) => (
+            {[...extraLogs, ...detail.activityLogs].map((log) => (
               <tr key={log.id}>
                 <td style={{ fontFamily: "monospace", fontSize: "0.8rem", color: "#64748b" }}>
                   {log.time}

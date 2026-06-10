@@ -1,5 +1,9 @@
 // src/pages/AdminSettings.jsx
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import {
+  AreaChart, Area, Tooltip,
+  ResponsiveContainer, XAxis, YAxis
+} from "recharts";
 
 // ── Mock Data ──────────────────────────────────────────────
 
@@ -63,6 +67,79 @@ const AUDIT_LOGS = [
   { id: 9, time: "2026-06-07 22:10:33", message: "Network latency spike detected (240ms)", user: "System" },
   { id: 10, time: "2026-06-07 18:30:00", message: "Weekly report exported by Nadia Berrada", user: "Nadia_B" },
 ];
+
+// ── SVG Icons ──────────────────────────────────────────────
+
+// ── Sparkline Data (30 days) ─────────────────────────────
+function generateSparklineData(base, variance, min, max) {
+  const data = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+    const value = Math.min(max, Math.max(min, base + (Math.random() - 0.45) * variance));
+    data.push({ date: dateStr, value: parseFloat(value.toFixed(1)) });
+  }
+  return data;
+}
+
+const SPARKLINE_DATA = {
+  uptime: generateSparklineData(99.97, 0.12, 99.5, 100),
+  sensors: generateSparklineData(11.8, 1.2, 10, 12),
+  network: generateSparklineData(98.2, 3.5, 90, 100),
+};
+
+function CustomSparklineTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.96)",
+      backdropFilter: "blur(6px)",
+      border: "1px solid #e2e8f0",
+      borderRadius: 8,
+      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      padding: "5px 9px",
+      fontSize: "0.7rem",
+      lineHeight: 1.4,
+    }}>
+      <div style={{ color: "#64748b" }}>{label}</div>
+      <div style={{ fontWeight: 700, color: "#0f172a" }}>{payload[0].value}</div>
+    </div>
+  );
+}
+
+function Sparkline({ data, color = "#10b981", unit = "" }) {
+  return (
+    <div style={{ width: "100%", height: 60, marginTop: 6 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={`spark-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="date" hide />
+          <YAxis hide domain={["dataMin - 1", "dataMax + 1"]} />
+          <Tooltip
+            content={<CustomSparklineTooltip />}
+            cursor={false}
+          />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={color}
+            strokeWidth={1.5}
+            fill={`url(#spark-${color.replace("#", "")})`}
+            dot={false}
+            activeDot={{ r: 3, fill: color, stroke: "#fff", strokeWidth: 1.5 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 // ── SVG Icons ──────────────────────────────────────────────
 
@@ -151,20 +228,23 @@ function ConfirmationModal({ title, description, onConfirm, onCancel, danger }) 
   );
 }
 
-function HealthCard({ icon, label, value, status, iconBg }) {
+function HealthCard({ icon, label, value, status, iconBg, sparkline }) {
   return (
-    <div className="health-card">
-      <div className="health-icon" style={{ background: iconBg }}>
-        {icon}
+    <div className="health-card" style={{ flexDirection: "column", alignItems: "stretch" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <div className="health-icon" style={{ background: iconBg }}>
+          {icon}
+        </div>
+        <div className="health-info">
+          <span className="health-label">{label}</span>
+          <span className="health-value">{value}</span>
+          <span className="health-status">
+            <span className="status-dot status-dot--live" style={{ width: 7, height: 7 }} />
+            {status}
+          </span>
+        </div>
       </div>
-      <div className="health-info">
-        <span className="health-label">{label}</span>
-        <span className="health-value">{value}</span>
-        <span className="health-status">
-          <span className="status-dot status-dot--live" style={{ width: 7, height: 7 }} />
-          {status}
-        </span>
-      </div>
+      {sparkline}
     </div>
   );
 }
@@ -230,6 +310,7 @@ export default function AdminSettings() {
             label="Total System Uptime"
             value="99.97%"
             status="Optimal"
+            sparkline={<Sparkline data={SPARKLINE_DATA.uptime} color="#10b981" />}
           />
           <HealthCard
             icon={<IconSensors />}
@@ -237,6 +318,7 @@ export default function AdminSettings() {
             label="Active Sensors"
             value="12 / 12"
             status="All Online"
+            sparkline={<Sparkline data={SPARKLINE_DATA.sensors} color="#10b981" />}
           />
           <HealthCard
             icon={<IconNetwork />}
@@ -244,6 +326,7 @@ export default function AdminSettings() {
             label="Network Connectivity"
             value="98.2%"
             status="Optimal"
+            sparkline={<Sparkline data={SPARKLINE_DATA.network} color="#10b981" />}
           />
         </div>
       </div>
@@ -251,7 +334,7 @@ export default function AdminSettings() {
       {/* ── Section 2: Access Control ──────────────────── */}
       <div className="glass-card" style={{ marginBottom: "2rem" }}>
         <h2 className="section-label">Access Control — Role Management</h2>
-        <div style={{ overflowX: "auto" }}>
+        <div className="roles-table-wrapper">
           <table className="roles-table">
             <thead>
               <tr>

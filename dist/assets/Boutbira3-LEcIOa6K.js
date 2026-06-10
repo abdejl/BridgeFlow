@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-BguSqK0t.js";import{t}from"./SectorDetailPage-CwEhAB4e.js";var n=e();function r(){return(0,n.jsx)(t,{sectorId:3,sectorName:`Boutbira 3`})}export{r as default};

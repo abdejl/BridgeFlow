@@ -25,6 +25,13 @@ const firebaseConfig = process.env.FIREBASE_PROJECT_ID
 admin.initializeApp(firebaseConfig);
 const db = admin.firestore();
 
+// ── Startup credential check ──────────────────────────────────────
+if (process.env.FIREBASE_PROJECT_ID) {
+  db.listCollections()
+    .then(() => console.log("Firebase Admin: credentials valid"))
+    .catch((err) => console.error("Firebase Admin: credential error —", err.message));
+}
+
 // ── Constants ─────────────────────────────────────────────────────
 const VALID_STATUSES = ["normal", "warning", "critical"];
 

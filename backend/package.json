@@ -1,0 +1,14 @@
+{
+  "name": "bridgeflow-backend",
+  "version": "1.0.0",
+  "description": "Standalone sensor ingestion backend for BridgeFlow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "firebase-admin": "^12.4.0"
+  }
+}

@@ -5,18 +5,32 @@ const app = express();
 app.use(express.json());
 
 // ── Firebase Admin ────────────────────────────────────────────────
-// Render: uses FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY
-// Local:  falls back to GOOGLE_APPLICATION_CREDENTIALS
-const firebaseConfig = process.env.FIREBASE_PROJECT_ID
+const hasFirebaseEnv =
+  process.env.FIREBASE_PROJECT_ID &&
+  process.env.FIREBASE_CLIENT_EMAIL &&
+  process.env.FIREBASE_PRIVATE_KEY;
+
+if (hasFirebaseEnv) {
+  console.log("Firebase Admin: FIREBASE_PROJECT_ID present");
+  console.log("Firebase Admin: FIREBASE_CLIENT_EMAIL present");
+  console.log("Firebase Admin: FIREBASE_PRIVATE_KEY present");
+} else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  console.log("Firebase Admin: using GOOGLE_APPLICATION_CREDENTIALS");
+} else {
+  console.error("Firebase Admin: no credentials found.");
+  console.error("Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY");
+  console.error("or GOOGLE_APPLICATION_CREDENTIALS.");
+  process.exit(1);
+}
+
+const firebaseConfig = hasFirebaseEnv
   ? {
       credential: admin.credential.cert({
-        project_id:  process.env.FIREBASE_PROJECT_ID,
-        client_email: process.env.FIREBASE_CLIENT_EMAIL,
-        private_key:  process.env.FIREBASE_PRIVATE_KEY
-          ?.replace(/\\n/g, "\n")
-          ?.replace(/\\r\\n/g, "\n")
-          ?.trim(),
+        projectId:  process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey:  process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
       }),
+      projectId: process.env.FIREBASE_PROJECT_ID,
     }
   : {
       credential: admin.credential.applicationDefault(),
@@ -24,13 +38,6 @@ const firebaseConfig = process.env.FIREBASE_PROJECT_ID
 
 admin.initializeApp(firebaseConfig);
 const db = admin.firestore();
-
-// ── Startup credential check ──────────────────────────────────────
-if (process.env.FIREBASE_PROJECT_ID) {
-  db.listCollections()
-    .then(() => console.log("Firebase Admin: credentials valid"))
-    .catch((err) => console.error("Firebase Admin: credential error —", err.message));
-}
 
 // ── Constants ─────────────────────────────────────────────────────
 const VALID_STATUSES = ["normal", "warning", "critical"];

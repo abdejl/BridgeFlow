@@ -5,3 +5,4 @@ service-account.json
 backend/service-account.json
 backend/.env
 backend/.sensor_key
+backend/*.save
